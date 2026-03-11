@@ -45,7 +45,7 @@ public class WeatherClient {
     RestTemplate restTemplate = new RestTemplate();
     ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET,
         new HttpEntity<>(new HttpHeaders()), Map.class);
-    log.info(uri.toString());
+
     if (CollectionUtils.isEmpty(response.getBody()) || !Objects.equals(response.getStatusCode(),
         HttpStatus.OK)) {
       throw new RuntimeException("getWeather failed" + response.getStatusCode());

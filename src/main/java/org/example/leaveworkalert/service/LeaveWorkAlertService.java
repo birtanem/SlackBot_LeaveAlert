@@ -26,13 +26,14 @@ public class LeaveWorkAlertService {
     String advice = getActivityAdvice(weatherInfoDTO);
     return String.format(
         """
-            📢 퇴근 5분전 & 날씨 알림 
-            현재 날씨는 %s, 현재온도 %d℃(체감 %d℃)입니다. 
-            초미세먼지 농도는 %.1f로 %s.
-            얼른 퇴근합시다!🏃‍♀️🏃‍♂️ 
+        현재 날씨는 *%s*, 현재 온도 *%d℃* (체감 *%d℃*)입니다.
+        초미세먼지 농도는 %.1f㎍/㎥로 *%s* (WHO기준).
+        %s
+        
+        얼른 퇴근합시다!🏃‍♀️🏃‍♂️
         """
         , weatherInfoDTO.getDescription(), weatherInfoDTO.getTemperature(), weatherInfoDTO.getFeels_like()
-        ,weatherInfoDTO.getAirPm(), advice
+        ,weatherInfoDTO.getAirPm(), getAirCondition(weatherInfoDTO.getAirPm()), advice
     );
   }
 
@@ -41,13 +42,23 @@ public class LeaveWorkAlertService {
     List<String> badWeather = List.of("Rain","Snow","Tornado","Squall","Drizzle");
     double airPm = weatherInfoDTO.getAirPm();
 
-    if (badWeather.contains(weatherInfoDTO.getWeather()) || airPm > 35) {
+    if (badWeather.contains(weatherInfoDTO.getWeather()) || airPm > 25) {
       return "🏡 실내 운동을 추천합니다.(마스크 착용하세용😷)";
     }
     if (badWeather.contains(weatherInfoDTO.getWeather()) && airPm <= 15) {
       return "달리기나 자전거 타기에 딱 좋은 날씨네요!🚴🏃‍♀";
     }
 
-    return "☁️무난한 날씨예요 ☁️";
+    return "☁️야외활동 하기에 무난한 날씨예요 ☁️";
+  }
+
+  private String getAirCondition(double airPm){
+    if (airPm <= 15) {
+      return "좋음";
+    }
+    if (airPm >25){
+      return "나쁨";
+    }
+    return "보통";
   }
 }
