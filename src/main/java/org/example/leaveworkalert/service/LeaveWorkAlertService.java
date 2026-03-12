@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.leaveworkalert.DTO.WeatherInfoDTO;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,9 +17,12 @@ public class LeaveWorkAlertService {
   private final SlackClient slackClient;
   private final WeatherClient weatherClient;
 
+  // 화-토 4시55분에 실행
+  @Scheduled(cron = "00 55 16 * * 2-6")
   public void sendAlert() throws SlackApiException, IOException {
      WeatherInfoDTO weatherInfoDTO = weatherClient.getWeather();
      String message = buildWeatherMessage(weatherInfoDTO);
+     log.info("[Scheduler] alerting start... ");
     slackClient.sendMessage(message);
   }
 
@@ -26,8 +30,8 @@ public class LeaveWorkAlertService {
     String advice = getActivityAdvice(weatherInfoDTO);
     return String.format(
         """
-        현재 날씨는 *%s*, 현재 온도 *%d℃* (체감 *%d℃*)입니다.
-        초미세먼지 농도는 %.1f㎍/㎥로 *%s* (WHO기준).
+        현재 날씨는 `%s` , 현재 온도 `%d℃` (체감 `%d℃`)입니다.
+        초미세먼지 농도는 `%.1f㎍/㎥`로 `%s` (WHO기준).
         %s
         
         얼른 퇴근합시다!🏃‍♀️🏃‍♂️
