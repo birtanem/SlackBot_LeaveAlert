@@ -49,7 +49,7 @@ public class LeaveWorkAlertService {
     if (badWeather.contains(weatherInfoDTO.getWeather()) || airPm > 25) {
       return "🏡 실내 운동을 추천합니다.(마스크 착용하세용😷)";
     }
-    if (badWeather.contains(weatherInfoDTO.getWeather()) && airPm <= 15) {
+    if ((weatherInfoDTO.getWeather().equals("Clear")||weatherInfoDTO.getWeather().equals("Clouds")) && airPm <= 15) {
       return "달리기나 자전거 타기에 딱 좋은 날씨네요!🚴🏃‍♀";
     }
 
