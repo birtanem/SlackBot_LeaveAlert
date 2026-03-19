@@ -24,6 +24,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class WeatherClient {
 
+  private final RestTemplate restTemplate;
+
   @Value("${WEATHER_TOKEN}")
   private String weatherToken;
 
@@ -31,18 +33,19 @@ public class WeatherClient {
     log.info("-------- getWeather called");
 
     Map<String, Object> geocoding = getGeocoding();
+    double lat = Double.parseDouble(geocoding.get("lat").toString());
+    double lon = Double.parseDouble(geocoding.get("lon").toString());
     String url = "https://api.openweathermap.org/data/2.5/weather";
     URI uri = UriComponentsBuilder
         .fromUriString(url)
-        .queryParam("lat", geocoding.get("lat"))
-        .queryParam("lon", geocoding.get("lon"))
+        .queryParam("lat", lat)
+        .queryParam("lon", lon)
         .queryParam("units", "metric")
         .queryParam("appid", weatherToken)
         .queryParam("lang", "kr")
         .build()
         .toUri();
 
-    RestTemplate restTemplate = new RestTemplate();
     ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET,
         new HttpEntity<>(new HttpHeaders()), Map.class);
 
@@ -62,25 +65,23 @@ public class WeatherClient {
         .description(description != null ? description : "")
         .feels_like(feels_like != null? Math.round(feels_like.floatValue()) : 0)
         .weather(String.valueOf(weather.getFirst().get("main")))
-        .airPm(getAirPollution())
+        .airPm(getAirPollution(lat, lon))
         .build()
         ;
   }
 
-  public double getAirPollution() {
+  public double getAirPollution(double lat, double lon) {
     log.info("-------- getAirPollution called");
 
-    Map<String, Object> geocoding = getGeocoding();
     String url = "http://api.openweathermap.org/data/2.5/air_pollution";
     URI uri = UriComponentsBuilder
         .fromUriString(url)
-        .queryParam("lat", geocoding.get("lat"))
-        .queryParam("lon", geocoding.get("lon"))
+        .queryParam("lat", lat)
+        .queryParam("lon", lon)
         .queryParam("appid", weatherToken)
         .build()
         .toUri();
 
-    RestTemplate restTemplate = new RestTemplate();
     ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET,
         new HttpEntity<>(new HttpHeaders()), Map.class);
 
@@ -105,7 +106,6 @@ public class WeatherClient {
         .build()
         .toUri();
 
-    RestTemplate restTemplate = new RestTemplate();
     ResponseEntity<List> response = restTemplate.exchange(uri, HttpMethod.GET,
         new HttpEntity<>(new HttpHeaders()), List.class);
 
