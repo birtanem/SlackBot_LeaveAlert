@@ -51,23 +51,27 @@ public class WeatherClient {
 
     if (CollectionUtils.isEmpty(response.getBody()) || !Objects.equals(response.getStatusCode(),
         HttpStatus.OK)) {
-      throw new RuntimeException("getWeather failed" + response.getStatusCode());
+      throw new RuntimeException("getWeather failed: " + response.getStatusCode());
     }
 
-    List<Map<String,Object>> weather = (List<Map<String, Object>>) response.getBody().get("weather");
-    Map<String,Object> main = (Map<String, Object>) response.getBody().get("main");
-    Number temp = (Number) main.get("temp");
-    Number feels_like = (Number) main.get("feels_like");
-    String description = String.valueOf(weather.getFirst().get("description"));
+    try {
+      List<Map<String,Object>> weather = (List<Map<String, Object>>) response.getBody().get("weather");
+      Map<String,Object> main = (Map<String, Object>) response.getBody().get("main");
+      Number temp = (Number) main.get("temp");
+      Number feels_like = (Number) main.get("feels_like");
+      String description = String.valueOf(weather.getFirst().get("description"));
 
-    return WeatherInfoDTO.builder()
-        .temperature(temp != null ? Math.round(temp.floatValue()) : 0)
-        .description(description != null ? description : "")
-        .feels_like(feels_like != null? Math.round(feels_like.floatValue()) : 0)
-        .weather(String.valueOf(weather.getFirst().get("main")))
-        .airPm(getAirPollution(lat, lon))
-        .build()
-        ;
+      return WeatherInfoDTO.builder()
+          .temperature(temp != null ? Math.round(temp.floatValue()) : 0)
+          .description(description != null ? description : "")
+          .feels_like(feels_like != null? Math.round(feels_like.floatValue()) : 0)
+          .weather(String.valueOf(weather.getFirst().get("main")))
+          .airPm(getAirPollution(lat, lon))
+          .build()
+          ;
+    } catch (Exception e) {
+      throw new RuntimeException("getWeather call failed",e);
+    }
   }
 
   public double getAirPollution(double lat, double lon) {
@@ -87,13 +91,17 @@ public class WeatherClient {
 
     if (CollectionUtils.isEmpty(response.getBody()) || !Objects.equals(response.getStatusCode(),
         HttpStatus.OK)) {
-      throw new RuntimeException("getAirPollution failed" + response.getStatusCode());
+      throw new RuntimeException("getAirPollution failed: " + response.getStatusCode());
 
     }
 
-    List<Map<String,Object>> list = (List<Map<String, Object>>) response.getBody().get("list");
-    Map<String,Object> components = (Map<String, Object>) list.getFirst().get("components");
-    return (double) components.get("pm2_5");
+    try {
+      List<Map<String,Object>> list = (List<Map<String, Object>>) response.getBody().get("list");
+      Map<String,Object> components = (Map<String, Object>) list.getFirst().get("components");
+      return (double) components.get("pm2_5");
+    } catch (Exception e) {
+      throw new RuntimeException("GetAirPollution call failed",e);
+    }
   }
 
   private Map<String,Object> getGeocoding() {
@@ -111,7 +119,7 @@ public class WeatherClient {
 
     if (CollectionUtils.isEmpty(response.getBody()) || !Objects.equals(response.getStatusCode(),
         HttpStatus.OK)) {
-      throw new RuntimeException("getGeocoding failed" + response.getStatusCode());
+      throw new RuntimeException("getGeocoding failed: " + response.getStatusCode());
     }
 
     Map<String, Object> result = (Map<String, Object>) response.getBody().getFirst();
