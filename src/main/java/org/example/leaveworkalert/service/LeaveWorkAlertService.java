@@ -1,7 +1,5 @@
 package org.example.leaveworkalert.service;
 
-import com.slack.api.methods.SlackApiException;
-import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,14 +14,20 @@ public class LeaveWorkAlertService {
 
   private final SlackClient slackClient;
   private final WeatherClient weatherClient;
+  private static final List<String> BAD_WEATHER = List.of("Rain","Snow","Tornado","Squall","Drizzle");
+
 
   // 화-토 4시55분에 실행
   @Scheduled(cron = "00 55 16 * * 2-6")
-  public void sendAlert() throws SlackApiException, IOException {
-     WeatherInfoDTO weatherInfoDTO = weatherClient.getWeather();
-     String message = buildWeatherMessage(weatherInfoDTO);
-     log.info("[Scheduler] alerting start... ");
-    slackClient.sendMessage(message);
+  public void sendAlert() {
+    try {
+      WeatherInfoDTO weatherInfoDTO = weatherClient.getWeather();
+      String message = buildWeatherMessage(weatherInfoDTO);
+      log.info("[Scheduler] alerting start... ");
+      slackClient.sendMessage(message);
+    } catch (Exception e) {
+      log.error("[Scheduler] alerting failed: ", e);
+    }
   }
 
   private String buildWeatherMessage(WeatherInfoDTO weatherInfoDTO) {
@@ -43,10 +47,9 @@ public class LeaveWorkAlertService {
 
   private String getActivityAdvice(WeatherInfoDTO weatherInfoDTO) {
 
-    List<String> badWeather = List.of("Rain","Snow","Tornado","Squall","Drizzle");
     double airPm = weatherInfoDTO.getAirPm();
 
-    if (badWeather.contains(weatherInfoDTO.getWeather()) || airPm > 25) {
+    if (BAD_WEATHER.contains(weatherInfoDTO.getWeather()) || airPm > 25) {
       return "🏡 실내 운동을 추천합니다.(마스크 착용하세용😷)";
     }
     if ((weatherInfoDTO.getWeather().equals("Clear")||weatherInfoDTO.getWeather().equals("Clouds")) && airPm <= 15) {

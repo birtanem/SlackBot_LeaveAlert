@@ -27,9 +27,10 @@ public class SlackClient {
   @Value("${SLACK_CHANNEL_ID}")
   private String channel;
 
+  private final Slack slack;
+
   public ChatPostMessageResponse sendMessage(String message)
       throws SlackApiException, IOException {
-    Slack slack = Slack.getInstance();
 
     List<LayoutBlock> messageBlock = List.of(
         //제목
